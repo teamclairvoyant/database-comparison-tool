@@ -10,11 +10,21 @@ import java.io.Serializable;
 
 class CustomUDFs extends UDF implements Serializable {
 
-    public UDF1 getHash = new UDF1<String,String>(){
+    static UDF1 getHash = new UDF1<String,String>(){
 
         @Override
         public String call(String s) throws Exception {
             return DigestUtils.md5Hex(s);
+        }
+    };
+
+    public UDF1 parseNull = new UDF1<String,String>() {
+        @Override
+        public String call(String s) throws Exception {
+            if(s != null)
+                return  s;
+            else
+                return "NULL";
         }
     };
 

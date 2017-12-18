@@ -36,6 +36,9 @@ public class AppConfig {
     @Value("${sqlServerDriver}")
     private String sqlServerDriver;
 
+    @Value("${htmlStorageLocation}")
+    private String htmlStorageLocation;
+
     @Value("${sqlServerPort}")
     private String sqlServerPort;
 
@@ -69,6 +72,11 @@ public class AppConfig {
     }
 
     @Bean
+    public String htmlStorageLocation() {
+        return htmlStorageLocation;
+    }
+
+    @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
         return new PropertySourcesPlaceholderConfigurer();
     }
@@ -99,6 +107,8 @@ public class AppConfig {
         hiveContext.udf().register("htmlGenerator", customUDFs.htmlGenerator, DataTypes.StringType);
         logger.info("Registering UDF :toHash");
         hiveContext.udf().register("toHash", customUDFs.getHash, DataTypes.StringType);
+        logger.info("Registering UDF :parseNull");
+        hiveContext.udf().register("parseNull", customUDFs.parseNull, DataTypes.StringType);
         return hiveContext;
     }
 
