@@ -20,8 +20,6 @@ import java.util.logging.Logger;
 @PropertySource(value = { "classpath:application.properties" })
 public class AppConfig {
 
-//    private static SparkConf sparkConf = new SparkConf();
-//    private static JavaSparkContext context = new JavaSparkContext(sparkConf);
     private static final Logger logger = Logger.getLogger(AppConfig.class.getName());
 
     @Value("${sqlServerUrl}")

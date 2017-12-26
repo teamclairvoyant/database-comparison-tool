@@ -80,7 +80,7 @@ public class SqlServerHiveCompare {
         // Adding Where clause
         String sqlQuery = "(SELECT * FROM "+sqlTable;
         String hiveQuery = "SELECT * FROM " + hiveDatabase + "." + hiveTableName;
-        if (whereClause != null) {
+        if (null != whereClause) {
             sqlQuery += " where (" + whereClause + ")";
             hiveQuery += " where (" + whereClause + ")";
         }
@@ -105,17 +105,17 @@ public class SqlServerHiveCompare {
         if (excludeColumns != null) {
             for (String column : excludeColumns) {
                 columnsCastedSqlServerTable = columnsCastedSqlServerTable.drop(column);
-                columnsCastedSqlServerTable.show();
+//                columnsCastedSqlServerTable.show();
                 hiveTable = hiveTable.drop(column.toLowerCase());
-                hiveTable.show();
+//                hiveTable.show();
             }
         }
 
+        // Finding the Common Columns in Both SqlServer and Hive
         String[] sqlTableFields = columnsCastedSqlServerTable.schema().fieldNames();
         ArrayList<String> sqlTableFieldsMismatchedList = new ArrayList<>(Arrays.asList(sqlTableFields));
         String[] hiveTableFields = hiveTable.schema().fieldNames();
         ArrayList<String> hiveTableFieldsMismatchedList = new ArrayList<>(Arrays.asList(hiveTableFields));
-
 
         ArrayList<String> commonColumnsSql = new ArrayList<>();
         ArrayList<String> commonColumnsHive = new ArrayList<>();
@@ -162,31 +162,7 @@ public class SqlServerHiveCompare {
         }
         columnsForFinalTableDisplay.setLength(columnsForFinalTableDisplay.length() - 1);
 
-//         //TODO: Handle Duplicate Rows
-//        sqlTableFields = columnsCastedSqlServerTable.schema().fieldNames();
-//        hiveTableFields = hiveTableSorted.schema().fieldNames();
-//
-//        Column[] sqlTableCols = new Column[sqlTableFields.length];
-//
-//        for (int i = 0; i < sqlTableFields.length; i++) {
-//            sqlTableCols[i] = callUDF("parseNull", columnsCastedSqlServerTable.col(sqlTableFields[i]).cast("String"));
-//        }
-//
-//        DataFrame columnsCastedSqlTableWithHashColumn = columnsCastedSqlServerTable.withColumn("uniqueHash", callUDF("concat", sqlTableCols));
-//        columnsCastedSqlTableWithHashColumn = columnsCastedSqlTableWithHashColumn.withColumn("uniqueHash", callUDF("toHash", columnsCastedSqlTableWithHashColumn.col("uniqueHash").cast("String")));
-//        columnsCastedSqlTableWithHashColumn = columnsCastedSqlTableWithHashColumn.withColumn("index",functions.monotonically_increasing_id());
-//
-//
-//
-//        Column[] hiveTableCols = new Column[hiveTableFields.length];
-//
-//        for (int i = 0; i < hiveTableFields.length; i++) {
-//            hiveTableCols[i] = callUDF("parseNull", hiveTableSorted.col(hiveTableFields[i]).cast("String"));
-//        }
-//
-//        DataFrame hiveTableSortedWithHashColumn = hiveTableSorted.withColumn("uniqueHash", callUDF("concat", hiveTableCols));
-//        hiveTableSortedWithHashColumn = hiveTableSortedWithHashColumn.withColumn("uniqueHash", callUDF("toHash", hiveTableSortedWithHashColumn.col("uniqueHash").cast("String")));
-//        hiveTableSortedWithHashColumn = hiveTableSortedWithHashColumn.withColumn("index",functions.monotonically_increasing_id());
+        //TODO: Handle Duplicate Rows
 
         try {
             // Columns in Sql but not in hive
@@ -222,11 +198,7 @@ public class SqlServerHiveCompare {
                     Column sqlCol = cartesianProduct.col(s);
                     Column hiveCol = cartesianProduct.col(s + "_hive");
 
-//                    Column concatCol = concat(sqlCol, lit("_"), hiveCol);
-//                    cartesianProduct = cartesianProduct.withColumn(s + "concat_col", concatCol);
-
                     String columnName = s + "concat_col";
-//                    Column concatColumn = cartesianProduct.col(columnName);
                     cartesianProduct = cartesianProduct.withColumn(columnName, callUDF("columnsCompare", sqlCol.cast("String"), hiveCol.cast("String")));
                     concatenatedColumnNames.append(columnName);
                     concatenatedColumnNames.append("+");
@@ -244,10 +216,10 @@ public class SqlServerHiveCompare {
                 String columnsOfFinalResults[] = finalResults.columns();
 
 
-                // Building Html Table
+                // Building Html
                 StringBuilder htmlStringBuilder = new StringBuilder();
 
-                htmlStringBuilder.append("<h3 align=\"center\" class=\"gray\"> Database Comparision Tool </h3>");
+                htmlStringBuilder.append("<h2 align=\"center\" color=\"gray\"> Database Comparision Tool </h2>");
 
                 htmlStringBuilder.append("<html><head><style>table {font-family: arial, sans-serif;border-collapse:collapse;width: 100%;}td, th {border: 1px solid #dddddd;text-align: left;padding: 8px;}</style></head><body><table>");
 
@@ -258,6 +230,19 @@ public class SqlServerHiveCompare {
                 htmlStringBuilder.append("<tr><td>Mis-matched Schema</td><td>").append(sqlTableFieldsMismatchedList).append("</td><td>").append(hiveTableFieldsMismatchedList).append("</td>");
                 htmlStringBuilder.append("</tr>");
                 htmlStringBuilder.append("</table></body></html>");
+
+                if(excludeColumns != null){
+                    htmlStringBuilder.append("<ul><font color=\"blue\"><li> Excluded Columns: ").append(Arrays.toString(excludeColumns)).append(" </li></font></ul>");
+                }else{
+                    htmlStringBuilder.append("<ul><font color=\"blue\"><li> User didn't Exclude any Columns  </li></font></ul>");
+                }
+
+                if (null != whereClause){
+                    htmlStringBuilder.append("<ul><font color=\"blue\"><li> where Clause: ").append(whereClause).append(" </li></font></ul>");
+                }else{
+                    htmlStringBuilder.append("<ul><font color=\"blue\"><li> User didn't provide where Clause  </li></font></ul>");
+                }
+
 
                 htmlStringBuilder.append("<html><head><style>table {font-family: arial, sans-serif;border-collapse:collapse;width: 100%;}td, th {border: 1px solid #dddddd;text-align: left;padding: 8px;}</style></head><body><table>");
                 for (String s : columnsOfFinalResults) {
@@ -285,9 +270,9 @@ public class SqlServerHiveCompare {
                 }
 
                 if (fullColumnsUnMatched.isEmpty()) {
-                    htmlStringBuilder.append("<p><font color=\"red\"> There are No Fully Unmatched Columns </font></p>");
+                    htmlStringBuilder.append("<ul><font color=\"red\"><li> There are No Fully Unmatched Columns </li></font></ul>");
                 } else {
-                    // TODO:Change it in Future to Show Full Columns
+                    // TODO:Change it in Future to Show Full Columns if needed.
                     htmlStringBuilder.append("<p><font color=\"red\"> Fully Unmatched Columns: ").append(fullColumnsUnMatched.toString()).append("</font></p>");
                 }
 
