@@ -28,6 +28,7 @@
 **Note: Port Should be forwarded to get the following steps to work.** 
 
 **Port Forwarding:**
+
 1. Forward 9090 port to get this server run.
 2. For Telarix this should be the way to connect to jumphost with port forwarding 
         
@@ -39,3 +40,16 @@
 2. Now run the command 
     python -m SimpleHTTPServer 9090
 3. Files in the html directory will be hosted.      
+
+
+**RUNNING THE TOOL USING SHELL SCRIPT**
+
+1. Script that helps to run this tool is placed in the bin folder.
+2. Run the script by providing the arguments that are required to run the spark-submit for the tool.
+    **Arguments**
+        -s   SqlServer Database Name
+        -t   SqlServer Table Name
+        -h   Hive Database Name
+        -p   Hive Table Name
+        -e   Columns to exclude
+        -w   where clause
