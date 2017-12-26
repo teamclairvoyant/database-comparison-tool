@@ -46,7 +46,9 @@
 
 1. Script that helps to run this tool is placed in the bin folder.
 2. Run the script by providing the arguments that are required to run the spark-submit for the tool.
+    
     **Arguments**
+        
         -s   SqlServer Database Name
         -t   SqlServer Table Name
         -h   Hive Database Name
