@@ -57,4 +57,5 @@
         -w   where clause
     
     Example:
+    
         sh scriptToRunDBComparisionTool.sh -s {Sql_database_name} -t {Sql_table_name} -h {hive_database_name} -p {hive_table_name} -e {columns_to_exclude} -w {where_clause}    
