@@ -44,7 +44,7 @@ fi
 
 #Spark-submit Command
 
-CMD="""spark-submit --driver-class-path /app/db_comparision/conf lib/sqlserver_hive_compare-jar-with-dependencies.jar -sqlDatabase ${s} -sqlTable ${t} -hiveDatabase ${h} -hiveTable ${p} """
+CMD="""spark-submit --driver-memory 4g --driver-class-path  /app/db_comparision/conf /app/db_comparision/lib/sqlserver_hive_compare-jar-with-dependencies.jar -sqlDatabase ${s} -sqlTable ${t} -hiveDatabase ${h} -hiveTable ${p} """
 
 if [ "${e}" != "" ]; then
     CMD="${CMD} -excludeColumns ${e}" 
@@ -54,6 +54,6 @@ if [ "${w}" != "" ]; then
     CMD="${CMD} -where ${e}" 
 fi
 
-echo "Execiting the Command: "
+echo "Executing the Command: "
 echo "${CMD}"
 $CMD

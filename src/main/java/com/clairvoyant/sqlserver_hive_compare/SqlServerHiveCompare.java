@@ -95,6 +95,10 @@ public class SqlServerHiveCompare {
 
         // Get the data from Hive Table
         DataFrame hiveTable = hiveContext.sql(hiveQuery);
+        String[] hiveTableFields = hiveTable.schema().fieldNames();
+        for(String column : hiveTableFields){
+            hiveTable = hiveTable.withColumnRenamed(column,column.toLowerCase());
+        }
         long hiveTableCount = hiveTable.count();
 
         // Casting the columns in dataframe where sqlserver table is stored
@@ -105,16 +109,14 @@ public class SqlServerHiveCompare {
         if (excludeColumns != null) {
             for (String column : excludeColumns) {
                 columnsCastedSqlServerTable = columnsCastedSqlServerTable.drop(column);
-//                columnsCastedSqlServerTable.show();
                 hiveTable = hiveTable.drop(column.toLowerCase());
-//                hiveTable.show();
             }
         }
 
         // Finding the Common Columns in Both SqlServer and Hive
         String[] sqlTableFields = columnsCastedSqlServerTable.schema().fieldNames();
         ArrayList<String> sqlTableFieldsMismatchedList = new ArrayList<>(Arrays.asList(sqlTableFields));
-        String[] hiveTableFields = hiveTable.schema().fieldNames();
+        hiveTableFields = hiveTable.schema().fieldNames();
         ArrayList<String> hiveTableFieldsMismatchedList = new ArrayList<>(Arrays.asList(hiveTableFields));
 
         ArrayList<String> commonColumnsSql = new ArrayList<>();
@@ -174,18 +176,20 @@ public class SqlServerHiveCompare {
                 System.out.println("==============================================================");
             } else {
 
-                // Unmatched Data both in Sql and Hive
-                DataFrame unmatchedDataInBothSqlAndHive = columnsCastedSqlServerTable.unionAll(hiveTableSorted).except(columnsCastedSqlServerTable.intersect(hiveTableSorted));
-
-                String columns[] = unmatchedDataInBothSqlAndHive.columns();
+//                // Unmatched Data both in Sql and Hive(Disabling for Now)
+//                DataFrame unmatchedDataInBothSqlAndHive = columnsCastedSqlServerTable.unionAll(hiveTableSorted).except(columnsCastedSqlServerTable.intersect(hiveTableSorted));
+//
+//                String columns[] = unmatchedDataInBothSqlAndHive.columns();
                 List<String> fullColumnsUnMatched = new ArrayList<>();
-
-                for (String s : columns) {
-                    // Checking if the whole column is Different
-                    if (sqlServerTable.count() == unmatchedDataInBothSqlAndHive.count() / 2) {
-                        fullColumnsUnMatched.add(s);
-                    }
-                }
+//
+//                System.out.println("Table Count: "+sqlServerTable.count());
+//                for (String s : columns) {
+//                    // Checking if the whole column is Different
+//                    System.out.println("Column Count: "+ sqlServerTable.select(s).count());
+//                    if (sqlServerTable.count() == unmatchedDataInBothSqlAndHive.count() / 2) {
+//                        fullColumnsUnMatched.add(s);
+//                    }
+//                }
 
                 // Getting Cartesian Product
                 columnsCastedSqlServerTable = columnsCastedSqlServerTable.withColumn("index", functions.monotonically_increasing_id());
