@@ -37,7 +37,8 @@ public class SqlServerHiveCompare {
         String hiveDatabase = arguments.gethiveDatabase();
         String hiveTableName = arguments.gethiveTable();
         String whereClause = arguments.getwhereClause();
-        String excludeColumns[] = arguments.getexcludeColumns();
+        String excludeColumnsString = arguments.getexcludeColumns();
+        List<String> excludeColumns = Arrays.asList(excludeColumnsString.split("\\s*,\\s*"));
 
         // Getting Timestamp
         SimpleDateFormat formatter = new SimpleDateFormat("ddMMyyyyHHmmss");
@@ -106,7 +107,7 @@ public class SqlServerHiveCompare {
         columnsCastedSqlServerTable.registerTempTable("sql_table");
 
         // Excluding Columns as requested by the User
-        if (excludeColumns != null) {
+        if (!excludeColumns.isEmpty()) {
             for (String column : excludeColumns) {
                 columnsCastedSqlServerTable = columnsCastedSqlServerTable.drop(column);
                 hiveTable = hiveTable.drop(column.toLowerCase());
@@ -235,8 +236,8 @@ public class SqlServerHiveCompare {
                 htmlStringBuilder.append("</tr>");
                 htmlStringBuilder.append("</table></body></html>");
 
-                if(excludeColumns != null){
-                    htmlStringBuilder.append("<ul><font color=\"blue\"><li> Excluded Columns: ").append(Arrays.toString(excludeColumns)).append(" </li></font></ul>");
+                if(!excludeColumns.isEmpty()){
+                    htmlStringBuilder.append("<ul><font color=\"blue\"><li> Excluded Columns: ").append(excludeColumns).append(" </li></font></ul>");
                 }else{
                     htmlStringBuilder.append("<ul><font color=\"blue\"><li> User didn't Exclude any Columns  </li></font></ul>");
                 }
@@ -322,7 +323,7 @@ public class SqlServerHiveCompare {
                     map_col = "decimal(19,4)";
                     break;
                 case "decimal":
-                    map_col = "decimal(19,6)";
+                    map_col = "decimal(25,6)";
                     break;
                 default:
                     map_col = null;

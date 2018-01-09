@@ -23,7 +23,7 @@ public class CommandLineArguments {
     private String whereClause = null;
 
     @Option(name="-excludeColumns",usage="Columns to Exclude from Comparision")
-    private String excludeColumns[] = null;
+    private String excludeColumns = null;
 
     public CommandLineArguments(String... args) throws CmdLineException {
         CmdLineParser parser = new CmdLineParser(this);
@@ -76,11 +76,11 @@ public class CommandLineArguments {
         this.whereClause = whereClause;
     }
 
-    public String[] getexcludeColumns() {
+    public String getexcludeColumns() {
         return excludeColumns;
     }
 
-    public void setexcludeColumns(String[] excludeColumns) {
+    public void setexcludeColumns(String excludeColumns) {
         this.excludeColumns = excludeColumns;
     }
 }
