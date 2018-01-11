@@ -38,7 +38,10 @@ public class SqlServerHiveCompare {
         String hiveTableName = arguments.gethiveTable();
         String whereClause = arguments.getwhereClause();
         String excludeColumnsString = arguments.getexcludeColumns();
-        List<String> excludeColumns = Arrays.asList(excludeColumnsString.split("\\s*,\\s*"));
+        List<String> excludeColumns = new ArrayList<>();
+        if(excludeColumnsString != null){
+            excludeColumns = Arrays.asList(excludeColumnsString.split(","));
+        }
 
         // Getting Timestamp
         SimpleDateFormat formatter = new SimpleDateFormat("ddMMyyyyHHmmss");
@@ -213,9 +216,9 @@ public class SqlServerHiveCompare {
                 cartesianProduct.registerTempTable("cartesian_product");
                 DataFrame concatenatedColumnsInCartesianProduct = hiveContext.sql("select *," + concatenatedColumnNames.toString() + " as total  from cartesian_product");
                 concatenatedColumnsInCartesianProduct.registerTempTable("final_results");
-                hiveContext.sql("select " + columnsForFinalTableDisplay.toString() + ",total from final_results").registerTempTable("final");
+                hiveContext.sql("select index," + columnsForFinalTableDisplay.toString() + ",total from final_results").registerTempTable("final");
                 hiveContext.sql("select index,max(total) as max_total from final_results group by index").registerTempTable("final_grouped");
-                DataFrame finalResults = hiveContext.sql("SELECT * FROM final LEFT OUTER JOIN final_grouped ON final.total = final_grouped.max_total WHERE final_grouped.max_total IS NOT NULL and final_grouped.max_total<>" + sqlTableFields.length + " order by index");
+                DataFrame finalResults = hiveContext.sql("SELECT b.* FROM final_grouped a LEFT JOIN final b ON a.max_total=b.total  and a.index=b.index WHERE a.max_total IS NOT NULL and a.max_total<>" + sqlTableFields.length + " order by b.index");
                 finalResults.registerTempTable("final_table");
                 finalResults = hiveContext.sql("select index," + columnsForFinalTableDisplay.toString() + " from final_table");
                 String columnsOfFinalResults[] = finalResults.columns();
