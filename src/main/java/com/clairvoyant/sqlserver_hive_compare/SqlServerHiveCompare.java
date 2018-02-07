@@ -132,6 +132,10 @@ public class SqlServerHiveCompare {
 
             sourceTable = hiveContext.read().format("jdbc").options(sqlQueryOptions).load();
             sourceTableCount = sourceTable.count();
+            if(sourceTableCount == 0){
+                System.out.println("Source Table is Empty");
+                System.exit(0);
+            }
 
             // Casting the columns in dataframe where sqlserver table is stored
             sourceTable = castColumns(sqlServerTableSchema, sourceTable);
@@ -152,6 +156,10 @@ public class SqlServerHiveCompare {
                 sourceTable = sourceTable.withColumnRenamed(column,column.toLowerCase());
             }
             sourceTableCount = sourceTable.count();
+            if(sourceTableCount == 0){
+                System.out.println("Source Table is Empty");
+                System.exit(0);
+            }
         }else{
             System.out.println("  Provide Source Database and Table names");
             System.exit(1);
@@ -184,6 +192,10 @@ public class SqlServerHiveCompare {
 
             destinationTable = hiveContext.read().format("jdbc").options(sqlQueryOptions).load();
             destinationTableCount = destinationTable.count();
+            if(destinationTableCount == 0){
+                System.out.println("Destination Table is Empty");
+                System.exit(0);
+            }
 
             // Casting the columns in dataframe where sqlserver table is stored
             destinationTable = castColumns(sqlServerTableSchema, destinationTable);
@@ -204,6 +216,11 @@ public class SqlServerHiveCompare {
                 destinationTable = destinationTable.withColumnRenamed(column,column.toLowerCase());
             }
             destinationTableCount = destinationTable.count();
+            if(destinationTableCount == 0){
+                System.out.println("Destination Table is Empty");
+                System.exit(0);
+            }
+
         }else{
             System.out.println("Provide Destination Database and Table names");
             System.exit(1);
