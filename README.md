@@ -2,8 +2,9 @@
 
 **DESCRIPTION:**
 
-1. This tool is used to compare tables in SqlServer and Hive by running a Spark Job.
-2. Details of both the tables in SqlServer and Hive are provided through Arguments.
+1. This tool is used to compare tables in any combination in SqlServer and Hive by running a Spark Job.(i.e SqlServer-SqlServer, SqlServer-Hive,
+Hive-SqlServer, Hive-Hive)
+2. Details of both source and destination are provided through Arguments.
 3. This tool provides an option to exclude columns from both the tables to compare.
 4. There is option to provide where clause to query data under particular partition.
 
@@ -11,8 +12,15 @@
 
 1. Update the application.properties file in /app/db_comparision/conf  with the required SqlServer credentials to connect.
 2. Now navigate to /app/db_comparision directory and run the spark job to find the differences between two tables.
-    Example spark-submit command:
-        spark-submit --driver-class-path /app/db_comparision/conf /app/db_comparision/lib/sqlserver_hive_compare-jar-with-dependencies.jar -sqlDatabase {Sql_database_name} -sqlTable {sql_table_name} -hiveDatabase {hive_database_name} -hiveTable {hive_table_name}
+    Example spark-submit commands:
+        
+        spark-submit --driver-class-path /app/db_comparision/conf /app/db_comparision/lib/sqlserver_hive_compare-jar-with-dependencies.jar -sourceSqlDatabase {Sql_database_name} -sourceSqlTable {sql_table_name} -destinationSqlDatabase {Sql_database_name} -destinationSqlTable {sql_table_name}
+        
+        spark-submit --driver-class-path /app/db_comparision/conf /app/db_comparision/lib/sqlserver_hive_compare-jar-with-dependencies.jar -sourceSqlDatabase {Sql_database_name} -sourceSqlTable {sql_table_name} -destinationHiveDatabase {hive_database_name} -destinationHiveTable {hive_table_name}
+        
+        spark-submit --driver-class-path /app/db_comparision/conf /app/db_comparision/lib/sqlserver_hive_compare-jar-with-dependencies.jar -sourceHiveDatabase {hive_database_name} -sourceHiveTable {hive_table_name} -destinationSqlDatabase {Sql_database_name} -destinationSqlTable {sql_table_name}
+        
+        spark-submit --driver-class-path /app/db_comparision/conf /app/db_comparision/lib/sqlserver_hive_compare-jar-with-dependencies.jar -sourceHiveDatabase {hive_database_name} -sourceHiveTable {hive_table_name} -destinationHiveDatabase {hive_database_name} -destinationHiveTable {hive_table_name}
         
         If there are any columns to exclude then add the argument 
             -excludeColumns {comman_seperated_columns_to_exclude}
@@ -21,7 +29,7 @@
             -where {where_clause} 
 
 3. If the Tables are equal then we will get a prompt saying Tables are Equal after the Spark Job.
-4. If they are not equal then the differences will be shown in a html file.A link will be displayed on the screen to view the file.
+4. If they are not equal then the differences will be shown in a html file. A link will be displayed on the screen to view the file.
 
 **Note: Html File should be hosted to view it.**
 
@@ -40,22 +48,4 @@
 2. Now run the command 
     python -m SimpleHTTPServer 9090
 3. Files in the html directory will be hosted.      
-
-
-**RUNNING THE TOOL USING SHELL SCRIPT**
-
-1. Script that helps to run this tool is placed in the bin folder.
-2. Run the script by providing the arguments that are required to run the spark-submit for the tool.
     
-    **Arguments**
-        
-        -s   SqlServer Database Name
-        -t   SqlServer Table Name
-        -h   Hive Database Name
-        -p   Hive Table Name
-        -e   Columns to exclude
-        -w   where clause
-    
-    Example:
-    
-        sh scriptToRunDBComparisionTool.sh -s {Sql_database_name} -t {Sql_table_name} -h {hive_database_name} -p {hive_table_name} -e {columns_to_exclude} -w {where_clause}    
