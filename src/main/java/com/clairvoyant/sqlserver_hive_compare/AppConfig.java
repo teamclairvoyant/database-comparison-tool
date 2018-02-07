@@ -22,51 +22,91 @@ public class AppConfig {
 
     private static final Logger logger = Logger.getLogger(AppConfig.class.getName());
 
-    @Value("${sqlServerUrl}")
-    private String sqlServerUrl;
+    @Value("${sourceSqlServerUrl}")
+    private String sourceSqlServerUrl;
 
-    @Value("${sqlServerUsername}")
-    private String sqlServerUsername;
+    @Value("${sourceSqlServerUsername}")
+    private String sourceSqlServerUsername;
 
-    @Value("${sqlServerPassword}")
-    private String sqlServerPassword;
+    @Value("${sourceSqlServerPassword}")
+    private String sourceSqlServerPassword;
 
-    @Value("${sqlServerDriver}")
-    private String sqlServerDriver;
+    @Value("${sourceSqlServerDriver}")
+    private String sourceSqlServerDriver;
+
+    @Value("${sourceSqlServerPort}")
+    private String sourceSqlServerPort;
+
+    @Value("${destinationSqlServerUrl}")
+    private String destinationSqlServerUrl;
+
+    @Value("${destinationSqlServerUsername}")
+    private String destinationSqlServerUsername;
+
+    @Value("${destinationSqlServerPassword}")
+    private String destinationSqlServerPassword;
+
+    @Value("${destinationSqlServerDriver}")
+    private String destinationSqlServerDriver;
+
+    @Value("${destinationSqlServerPort}")
+    private String destinationSqlServerPort;
 
     @Value("${htmlStorageLocation}")
     private String htmlStorageLocation;
-
-    @Value("${sqlServerPort}")
-    private String sqlServerPort;
 
     @Autowired
     private Environment environment;
 
 
     @Bean
-    public String sqlServerUrl() {
-        return sqlServerUrl;
+    public String sourceSqlServerUrl() {
+        return sourceSqlServerUrl;
     }
 
     @Bean
-    public String sqlServerPort() {
-        return sqlServerPort;
+    public String sourceSqlServerPort() {
+        return sourceSqlServerPort;
     }
 
     @Bean
-    public String sqlServerUsername() {
-        return sqlServerUsername;
+    public String sourceSqlServerUsername() {
+        return sourceSqlServerUsername;
     }
 
     @Bean
-    public String sqlServerPassword() {
-        return sqlServerPassword;
+    public String sourceSqlServerPassword() {
+        return sourceSqlServerPassword;
     }
 
     @Bean
-    public String sqlServerDriver() {
-        return sqlServerDriver;
+    public String sourceSqlServerDriver() {
+        return sourceSqlServerDriver;
+    }
+
+    @Bean
+    public String destinationSqlServerUrl() {
+        return destinationSqlServerUrl;
+    }
+
+    @Bean
+    public String destinationSqlServerPort() {
+        return destinationSqlServerPort;
+    }
+
+    @Bean
+    public String destinationSqlServerUsername() {
+        return destinationSqlServerUsername;
+    }
+
+    @Bean
+    public String destinationSqlServerPassword() {
+        return destinationSqlServerPassword;
+    }
+
+    @Bean
+    public String destinationSqlServerDriver() {
+        return destinationSqlServerDriver;
     }
 
     @Bean
