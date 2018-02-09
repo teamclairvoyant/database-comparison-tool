@@ -255,7 +255,7 @@ public class SqlServerHiveCompare {
         if (commonColumnsSource.isEmpty() && commonColumnsDestination.isEmpty()) {
             System.out.println("Schema for Source and destination tables is not matching.");
             System.out.println("==============================================================");
-            System.out.println("Tables are equal");
+            System.out.println("Tables are  Not equal");
             System.out.println("==============================================================");
             System.exit(0);
         }
