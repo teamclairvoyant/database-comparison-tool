@@ -47,5 +47,38 @@ Hive-SqlServer, Hive-Hive)
 1. Navigate to the html output directory as provided in the application.properties file.
 2. Now run the command 
     python -m SimpleHTTPServer 9090
-3. Files in the html directory will be hosted.      
+3. Files in the html directory will be hosted.   
+
+RUNNING THE TOOL USING SHELL SCRIPT
+
+Script that helps to run this tool is placed in the bin folder.
+
+Run the script by providing the arguments that are required to run the spark-submit for the tool.
+
+Required Arguments
+
+    --sourceSqlDatabase       Source SqlServer Database Name         **OR**   --sourceHiveDatabase       Source Hive Database Name
+    
+    --sourceSqlTable          Source SqlServer Table Name            **OR**   --sourceHiveTable          Source Hive Table Name
+    
+    --destinationSqlDatabase  Destination SqlServer Database Name    **OR**   --destinationHiveDatabase  Destination Hive Database Name
+    
+    --destinationSqlTable     Destination SqlServer Table Name       **OR**   --destinationHiveTable     Destination Hive Table Name
+ 
+
+Optional Arguments
+
+    --excludeColumns   Columns to exclude
+    --where            where clause
+
+
+Example:
+
+    sh scriptToRunDBComparisionTool.sh --sourceSqlDatabase {Sql_database_name} --sourceSqlTable {sql_table_name} --destinationSqlDatabase {Sql_database_name} --destinationSqlTable {sql_table_name} --excludeColumns {columns_to_exclude} --where {where_clause}
+    
+    sh scriptToRunDBComparisionTool.sh --sourceSqlDatabase {Sql_database_name} --sourceSqlTable {sql_table_name} --destinationHiveDatabase {hive_database_name} --destinationHiveTable {hive_table_name} --excludeColumns {columns_to_exclude} --where {where_clause}
+    
+    sh scriptToRunDBComparisionTool.sh --sourceHiveDatabase {hive_database_name} --sourceHiveTable {hive_table_name} --destinationSqlDatabase {Sql_database_name} --destinationSqlTable {sql_table_name} --excludeColumns {columns_to_exclude} --where {where_clause}
+    
+    sh scriptToRunDBComparisionTool.sh --sourceHiveDatabase {hive_database_name} --sourceHiveTable {hive_table_name} --destinationHiveDatabase {hive_database_name} --destinationHiveTable {hive_table_name} --excludeColumns {columns_to_exclude} --where {where_clause}       
     
