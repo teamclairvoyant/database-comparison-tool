@@ -141,6 +141,8 @@ public class AppConfig {
         CustomUDFs customUDFs = new CustomUDFs();
         logger.info("Registering UDF :columnsCompare");
         hiveContext.udf().register("columnsCompare", customUDFs.columnsCompare, DataTypes.StringType);
+        logger.info("Registering UDF :columnsStringComparision");
+        hiveContext.udf().register("columnsStringComparision", customUDFs.columnsStringComparision, DataTypes.StringType);
         logger.info("Registering UDF :htmlGenerator");
         hiveContext.udf().register("htmlGenerator", customUDFs.htmlGenerator, DataTypes.StringType);
         logger.info("Registering UDF :toHash");

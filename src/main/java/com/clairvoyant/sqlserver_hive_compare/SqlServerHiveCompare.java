@@ -15,9 +15,7 @@ import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static org.apache.spark.sql.functions.callUDF;
-import static org.apache.spark.sql.functions.concat;
-import static org.apache.spark.sql.functions.lit;
+import static org.apache.spark.sql.functions.*;
 
 public class SqlServerHiveCompare {
 
@@ -297,45 +295,25 @@ public class SqlServerHiveCompare {
         }
         columnsForFinalTableDisplay.setLength(columnsForFinalTableDisplay.length() - 1);
 
-        System.out.println("Source Table");
-        sourceTable.show();
-
-        System.out.println("Destination Table");
-        destinationTable.show();
-
         //TODO: Handle Duplicate Rows
 
         try {
 
             // Columns in Sql but not in hive
-            DataFrame dataInSqlButNotHive = sourceTable.except(destinationTable);
-            DataFrame dataInHiveButNotSql = destinationTable.except(sourceTable);
-            if (dataInSqlButNotHive.count() == 0 && dataInHiveButNotSql.count() == 0) {
+            DataFrame dataInSourceButNotDestination = sourceTable.except(destinationTable);
+            DataFrame dataInDestinationButNotSource = destinationTable.except(sourceTable);
+            if (dataInSourceButNotDestination.count() == 0 && dataInDestinationButNotSource.count() == 0) {
                 System.out.println("==============================================================");
                 System.out.println("Tables are equal");
                 System.out.println("==============================================================");
             } else {
 
-//                // Unmatched Data both in Sql and Hive(Disabling for Now)
-//                DataFrame unmatchedDataInBothSqlAndHive = columnsCastedSqlServerTable.unionAll(destinationTable).except(columnsCastedSqlServerTable.intersect(destinationTable));
-//
-//                String columns[] = unmatchedDataInBothSqlAndHive.columns();
-                List<String> fullColumnsUnMatched = new ArrayList<>();
-//
-//                System.out.println("Table Count: "+sourceTable.count());
-//                for (String s : columns) {
-//                    // Checking if the whole column is Different
-//                    System.out.println("Column Count: "+ sourceTable.select(s).count());
-//                    if (sourceTable.count() == unmatchedDataInBothSqlAndHive.count() / 2) {
-//                        fullColumnsUnMatched.add(s);
-//                    }
-//                }
-
                 // Getting Cartesian Product
                 sourceTable = sourceTable.withColumn("index", functions.monotonically_increasing_id());
                 DataFrame cartesianProduct = sourceTable.join(destinationTable);
-                cartesianProduct.registerTempTable("just_test");
                 StringBuilder concatenatedColumnNames = new StringBuilder();
+                List<String> fullColumnsUnMatched = new ArrayList<>();
+                double columnSum;
 
                 // Column Comparision
                 for (String s : sqlColumns) {
@@ -344,10 +322,19 @@ public class SqlServerHiveCompare {
 
                     String columnName = s + "concat_col";
                     cartesianProduct = cartesianProduct.withColumn(columnName, callUDF("columnsCompare", sqlCol.cast("String"), hiveCol.cast("String")));
+                    cartesianProduct = cartesianProduct.withColumn(s+"_comparision", callUDF("columnsStringComparision", sqlCol.cast("String"), hiveCol.cast("String")));
+                    cartesianProduct.registerTempTable("unmatched_columns_test");
+                    columnSum = hiveContext.sql("select sum("+s+"_comparision) from unmatched_columns_test").collect()[0].getDouble(0);
+                    if(columnSum == 0.0){
+                        System.out.println("Fully Unmatched column: "+s);
+                        fullColumnsUnMatched.add(s);
+                    }
                     concatenatedColumnNames.append(columnName);
                     concatenatedColumnNames.append("+");
                 }
+
                 concatenatedColumnNames.setLength(concatenatedColumnNames.length() - 1);
+                System.out.println("Fully Unmatched Columns: "+fullColumnsUnMatched);
 
                 cartesianProduct.registerTempTable("cartesian_product");
                 DataFrame concatenatedColumnsInCartesianProduct = hiveContext.sql("select *," + concatenatedColumnNames.toString() + " as total  from cartesian_product");

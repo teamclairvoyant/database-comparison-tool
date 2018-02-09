@@ -32,10 +32,23 @@ class CustomUDFs extends UDF implements Serializable {
         Double returnValue;
 
         public String call(String s1, String s2) throws Exception {
-            // TODO: Change it by calling init function.
             JaroWinkler jw = new JaroWinkler();
             returnValue = jw.similarity(s1 == null ? "" : s1, s2 == null ? "" : s2);
             return returnValue.toString();
+        }
+    };
+
+    static UDF2<String, String, String> columnsStringComparision = new UDF2<String, String, String>() {
+        int returnValue;
+
+        public String call(String s1, String s2) throws Exception {
+            if((s1 != null ? s1 : "NULL").equals((s2 != null ? s2 : "NULL"))){
+                returnValue = 1;
+            }else{
+                returnValue = 0;
+            }
+
+            return String.valueOf(returnValue);
         }
     };
 
