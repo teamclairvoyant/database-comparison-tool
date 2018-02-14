@@ -326,7 +326,6 @@ public class SqlServerHiveCompare {
                     cartesianProduct.registerTempTable("unmatched_columns_test");
                     columnSum = hiveContext.sql("select sum("+s+"_comparision) from unmatched_columns_test").collect()[0].getDouble(0);
                     if(columnSum == 0.0){
-                        System.out.println("Fully Unmatched column: "+s);
                         fullColumnsUnMatched.add(s);
                     }
                     concatenatedColumnNames.append(columnName);
