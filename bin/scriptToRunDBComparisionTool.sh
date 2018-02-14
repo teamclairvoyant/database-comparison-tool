@@ -29,7 +29,7 @@ Example:
 
         sh scriptToRunDBComparisionTool.sh --sourceHiveDatabase={hive_database_name} --sourceHiveTable={hive_table_name} --destinationSqlDatabase={Sql_database_name} --destinationSqlTable={sql_table_name} --excludeColumns={columns_to_exclude} --where={where_clause}
 
-        sh scriptToRunDBComparisionTool.sh --sourceHiveDatabase={hive_database_name} --sourceHiveTable={hive_table_name} --destinationHiveDatabase={hive_database_name} --destinationHiveTable={hive_table_name} --excludeColumns={columns_to_exclude} --where={where_clause}
+        sh scriptToRunDBComparisionTool.sh --sourceHiveDatabase={hive_database_name} --sourceHiveTable={hive_table_name} --destinationHiveDatabase={hive_database_name} --destinationHiveTable={hive_table_name} --excludeColumns={columns_to_exclude} --where={where_clause}"""
 }
 
 CMD="""spark-submit --driver-class-path /home/ixadmin_ext/aravind/spark_code/sqlserver_hive_compare target/sqlserver_hive_compare-jar-with-dependencies.jar"""
