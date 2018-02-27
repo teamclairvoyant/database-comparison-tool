@@ -2,8 +2,7 @@
 
 **DESCRIPTION:**
 
-1. This tool is used to compare tables in any combination in SqlServer and Hive by running a Spark Job.(i.e SqlServer-SqlServer, SqlServer-Hive,
-Hive-SqlServer, Hive-Hive)
+1. This tool is used to compare tables in any combination in Sql Databases(mssql,mysql and postgresql) and Hive by running a Spark Job.
 2. Details of both source and destination are provided through Arguments.
 3. This tool provides an option to exclude columns from both the tables to compare.
 4. There is option to provide where clause to query data under particular partition.
@@ -12,15 +11,9 @@ Hive-SqlServer, Hive-Hive)
 
 1. Update the application.properties file in /app/db_comparision/conf  with the required SqlServer credentials to connect.
 2. Now navigate to /app/db_comparision directory and run the spark job to find the differences between two tables.
-    Example spark-submit commands:
+    Example spark-submit command:
         
-        spark-submit --driver-class-path /app/db_comparision/conf /app/db_comparision/lib/sqlserver_hive_compare-jar-with-dependencies.jar -sourceSqlDatabase {Sql_database_name} -sourceSqlTable {sql_table_name} -destinationSqlDatabase {Sql_database_name} -destinationSqlTable {sql_table_name}
-        
-        spark-submit --driver-class-path /app/db_comparision/conf /app/db_comparision/lib/sqlserver_hive_compare-jar-with-dependencies.jar -sourceSqlDatabase {Sql_database_name} -sourceSqlTable {sql_table_name} -destinationHiveDatabase {hive_database_name} -destinationHiveTable {hive_table_name}
-        
-        spark-submit --driver-class-path /app/db_comparision/conf /app/db_comparision/lib/sqlserver_hive_compare-jar-with-dependencies.jar -sourceHiveDatabase {hive_database_name} -sourceHiveTable {hive_table_name} -destinationSqlDatabase {Sql_database_name} -destinationSqlTable {sql_table_name}
-        
-        spark-submit --driver-class-path /app/db_comparision/conf /app/db_comparision/lib/sqlserver_hive_compare-jar-with-dependencies.jar -sourceHiveDatabase {hive_database_name} -sourceHiveTable {hive_table_name} -destinationHiveDatabase {hive_database_name} -destinationHiveTable {hive_table_name}
+        spark-submit --driver-class-path /app/db_comparision/conf /app/db_comparision/lib/sqlserver_hive_compare-jar-with-dependencies.jar -sourceName mysqltruckstop -destinationName Hive -sourceType mysql -destinationType Hive -sourceDatabase {source_database_name} -sourceTable {source_table_name} -destinationDatabase {destination_database_name} -destinationTable {destination_table_name}
         
         If there are any columns to exclude then add the argument 
             -excludeColumns {comman_seperated_columns_to_exclude}
@@ -45,8 +38,11 @@ Hive-SqlServer, Hive-Hive)
 **Hosting the Html File:**
 
 1. Navigate to the html output directory as provided in the application.properties file.
+
 2. Now run the command 
-    python -m SimpleHTTPServer 9090
+       
+       python -m SimpleHTTPServer 9090
+
 3. Files in the html directory will be hosted.   
 
 RUNNING THE TOOL USING SHELL SCRIPT
@@ -57,13 +53,17 @@ Run the script by providing the arguments that are required to run the spark-sub
 
 Required Arguments
 
-    --sourceSqlDatabase       Source SqlServer Database Name         **OR**   --sourceHiveDatabase       Source Hive Database Name
+    --sourceName {name_of_the_host_where_source_database_is_hosted}. (If the Source is Hive then give the name as "Hive")
+    --destinationName {name_of_the_host_where_destination_database_is_hosted}. (If the Source is Hive then give the name as "Hive") 
     
-    --sourceSqlTable          Source SqlServer Table Name            **OR**   --sourceHiveTable          Source Hive Table Name
+    --sourceType {Type_of_database} (i.e mysql or mssql or postgresql or Hive) 
+    --destinationType Hive {Type_of_database} (i.e mysql or mssql or postgresql or Hive)
     
-    --destinationSqlDatabase  Destination SqlServer Database Name    **OR**   --destinationHiveDatabase  Destination Hive Database Name
+    --sourceDatabase {source_database_name} 
+    --sourceTable {source_table_name} 
     
-    --destinationSqlTable     Destination SqlServer Table Name       **OR**   --destinationHiveTable     Destination Hive Table Name
+    --destinationDatabase {destination_database_name} 
+    --destinationTable {destination_table_name}
  
 
 Optional Arguments
@@ -74,11 +74,5 @@ Optional Arguments
 
 Example:
 
-    sh scriptToRunDBComparisionTool.sh --sourceSqlDatabase {Sql_database_name} --sourceSqlTable {sql_table_name} --destinationSqlDatabase {Sql_database_name} --destinationSqlTable {sql_table_name} --excludeColumns {columns_to_exclude} --where {where_clause}
-    
-    sh scriptToRunDBComparisionTool.sh --sourceSqlDatabase {Sql_database_name} --sourceSqlTable {sql_table_name} --destinationHiveDatabase {hive_database_name} --destinationHiveTable {hive_table_name} --excludeColumns {columns_to_exclude} --where {where_clause}
-    
-    sh scriptToRunDBComparisionTool.sh --sourceHiveDatabase {hive_database_name} --sourceHiveTable {hive_table_name} --destinationSqlDatabase {Sql_database_name} --destinationSqlTable {sql_table_name} --excludeColumns {columns_to_exclude} --where {where_clause}
-    
-    sh scriptToRunDBComparisionTool.sh --sourceHiveDatabase {hive_database_name} --sourceHiveTable {hive_table_name} --destinationHiveDatabase {hive_database_name} --destinationHiveTable {hive_table_name} --excludeColumns {columns_to_exclude} --where {where_clause}      
+    sh tes.sh -sourceName {SOURCE_NAME} -destinationName {DESTINATION_NAME} -sourceType {SOURCE_TYPE} -destinationType {DESTINATION_TYPE} -sourceDatabase {SOURCE_DATABASE} -sourceTable {SOURCE_TABLE} -destinationDatabase {DESTINATION_DATABASE} -destinationTable {DESTINATION_TABLE} --excludeColumns {columns_to_exclude} --where {where_clause}
     

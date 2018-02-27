@@ -6,10 +6,18 @@ function usage()
 
 
 Required Arguments
-    --sourceSqlDatabase       Source SqlServer Database Name         **OR**   --sourceHiveDatabase       Source Hive Database Name
-    --sourceSqlTable          Source SqlServer Table Name            **OR**   --sourceHiveTable          Source Hive Table Name
-    --destinationSqlDatabase  Destination SqlServer Database Name    **OR**   --destinationHiveDatabase  Destination Hive Database Name
-    --destinationSqlTable     Destination SqlServer Table Name       **OR**   --destinationHiveTable     Destination Hive Table Name
+
+    --sourceName {name_of_the_host_where_source_database_is_hosted}. (If the Source is Hive then give the name as "Hive")
+    --destinationName {name_of_the_host_where_destination_database_is_hosted}. (If the Source is Hive then give the name as "Hive")
+
+    --sourceType {Type_of_database} (i.e mysql or mssql or postgresql or Hive)
+    --destinationType Hive {Type_of_database} (i.e mysql or mssql or postgresql or Hive)
+
+    --sourceDatabase {source_database_name}
+    --sourceTable {source_table_name}
+
+    --destinationDatabase {destination_database_name}
+    --destinationTable {destination_table_name}
 
 
 Optional Arguments
@@ -19,18 +27,12 @@ Optional Arguments
 
 
 Example:
-        sh scriptToRunDBComparisionTool.sh --sourceSqlDatabase {Sql_database_name} --sourceSqlTable {sql_table_name} --destinationSqlDatabase {Sql_database_name} --destinationSqlTable {sql_table_name} --excludeColumns {columns_to_exclude} --where {where_clause}
-
-        sh scriptToRunDBComparisionTool.sh --sourceSqlDatabase {Sql_database_name} --sourceSqlTable {sql_table_name} --destinationHiveDatabase {hive_database_name} --destinationHiveTable {hive_table_name} --excludeColumns {columns_to_exclude} --where {where_clause}
-
-        sh scriptToRunDBComparisionTool.sh --sourceHiveDatabase {hive_database_name} --sourceHiveTable {hive_table_name} --destinationSqlDatabase {Sql_database_name} --destinationSqlTable {sql_table_name} --excludeColumns {columns_to_exclude} --where {where_clause}
-
-        sh scriptToRunDBComparisionTool.sh --sourceHiveDatabase {hive_database_name} --sourceHiveTable {hive_table_name} --destinationHiveDatabase {hive_database_name} --destinationHiveTable {hive_table_name} --excludeColumns {columns_to_exclude} --where {where_clause}"""
+        sh tes.sh -sourceName {SOURCE_NAME} -destinationName {DESTINATION_NAME} -sourceType {SOURCE_TYPE} -destinationType {DESTINATION_TYPE} -sourceDatabase {SOURCE_DATABASE} -sourceTable {SOURCE_TABLE} -destinationDatabase {DESTINATION_DATABASE} -destinationTable {DESTINATION_TABLE}"""
 }
 
 
 
-OPTS=`getopt long help,sourceSqlDatabase,sourceSqlTable,sourceHiveDatabase,sourceHiveTable,destinationSqlDatabase,destinationSqlTable,destinationHiveDatabase,destinationHiveTable: -n 'parse-options' -- "$@"`
+OPTS=`getopt long help,sourceName,destinationName,sourceType,destinationType,sourceDatabase,sourceTable,destinationDatabase,destinationTable: -n 'parse-options' -- "$@"`
 
 if [ $? != 0 ] ; then
   echo "Failed parsing options." >&2
@@ -40,9 +42,6 @@ fi
 eval set -- "$OPTS"
 
 shift 4;
-
-HELP=false
-STACK_SIZE=0
 
 # Spark Submit Command
 CMD="""spark-submit --driver-class-path /app/db_comparison/conf /app/db_comparison/lib/sqlserver_hive_compare-jar-with-dependencies.jar"""
@@ -54,22 +53,21 @@ while true; do
     --help ) usage; exit 0; shift ;;
 
     # Source Database and Tables
-    --sourceSqlDatabase ) SOURCESQLDATABASE="$2" shift 2 ;;
+    --sourceName ) SOURCENAME="$2" shift 2 ;;
 
-    --sourceSqlTable ) SOURCESQLTABLE="$2" shift 2 ;;
+    --destinationName ) DESTINATIONNAME="$2" shift 2 ;;
 
-    --sourceHiveDatabase ) SOURCEHIVEDATABASE="$2" shift 2 ;;
+    --sourceType ) SOURCETYPE="$2" shift 2 ;;
 
-    --sourceHiveTable ) SOURCEHIVETABLE="$2" shift 2 ;;
+    --destinationType ) DESTINATIONTYPE="$2" shift 2 ;;
 
-    # Destination Database and Tables
-    --destinationSqlDatabase ) DESTINATIONSQLDATABASE="$2" shift 2 ;;
+    --sourceDatabase ) SOURCEDATABASE="$2" shift 2 ;;
 
-    --destinationSqlTable ) DESTINATIONSQLTABLE="$2" shift 2 ;;
+    --sourceTable ) SOURCETABLE="$2" shift 2 ;;
 
-    --destinationHiveDatabase ) DESTINATIONHIVEDATABASE="$2" shift 2 ;;
+    --destinationDatabase ) DESTINATIONDATABASE="$2" shift 2 ;;
 
-    --destinationHiveTable ) DESTINATIONHIVETABLE="$2" shift 2 ;;
+    --destinationTable ) DESTINATIONTABLE="$2" shift 2 ;;
 
 
     # Exclude Columns and Where clause
@@ -82,50 +80,53 @@ while true; do
   esac
 done
 
-if [[ -z "${SOURCESQLDATABASE}" && -z "${SOURCEHIVEDATABASE}" ]]; then
+if [[ -z "${SOURCENAME}" ]]; then
+    echo "Source Name is not given"
+    exit -1
+fi
+
+if [[ -z "${DESTINATIONNAME}" ]]; then
+    echo "Destination Name is not given"
+    exit -1
+fi
+
+if [[ -z "${SOURCETYPE}" ]]; then
+    echo "Source Type is not given"
+    exit -1
+fi
+
+if [[ -z "${DESTINATIONTYPE}" ]]; then
+    echo "Destination Type is not given"
+    exit -1
+fi
+
+if [[ -z "${SOURCEDATABASE}" ]]; then
     echo "Source Database is not given"
     exit -1
 fi
 
-if [[ -z "${SOURCESQLTABLE}" && -z "${SOURCEHIVETABLE}" ]]; then
+if [[ -z "${SOURCETABLE}" ]]; then
     echo "Source Table is not given"
     exit -1
 fi
 
-if [[ -z "${DESTINATIONSQLDATABASE}" && -z "${DESTINATIONHIVEDATABASE}" ]]; then
+if [[ -z "${DESTINATIONDATABASE}" ]]; then
     echo "Destination Database is not given"
     exit -1
 fi
 
-if [[ -z "${DESTINATIONSQLTABLE}" && -z "${DESTINATIONHIVETABLE}" ]]; then
+if [[ -z "${DESTINATIONTABLE}" ]]; then
     echo "Destination Table is not given"
     exit -1
 fi
 
+CMD="${CMD} -sourceName ${SOURCENAME} -destinationName ${DESTINATIONNAME} -sourceType ${SOURCETYPE} -destinationType ${DESTINATIONTYPE} -sourceDatabase ${SOURCEDATABASE} -sourceTable ${SOURCETABLE} -destinationDatabase ${DESTINATIONDATABASE} -destinationTable ${DESTINATIONTABLE}"
 
-
-if [ "${SOURCESQLDATABASE}" != "" ]; then
-    CMD="${CMD} -sourceSqlDatabase ${SOURCESQLDATABASE}"
-    CMD="${CMD} -sourceSqlTable ${SOURCESQLTABLE}"
-else
-     CMD="${CMD} -sourceHiveDatabase ${SOURCEHIVEDATABASE}"
-     CMD="${CMD} -sourceHiveTable ${SOURCEHIVETABLE}"
-fi
-
-if [ "${DESTINATIONSQLDATABASE}" != "" ]; then
-    CMD="${CMD} -destinationSqlDatabase ${DESTINATIONSQLDATABASE}"
-    CMD="${CMD} -destinationSqlTable ${DESTINATIONSQLTABLE}"
-else
-     CMD="${CMD} -destinationHiveDatabase ${DESTINATIONHIVEDATABASE}"
-     CMD="${CMD} -destinationHiveTable ${DESTINATIONHIVETABLE}"
-fi
-
-
-if [ "${EXCLUDECOLUMNS}" != "" ]; then
+if [[ "${EXCLUDECOLUMNS}" != "" ]]; then
     CMD="${CMD} -excludeColumns ${EXCLUDECOLUMNS}"
 fi
 
-if [ "${WHERECLAUSE}" != "" ]; then
+if [[ "${WHERECLAUSE}" != "" ]]; then
     CMD="${CMD} -where ${WHERECLAUSE}"
 fi
 
