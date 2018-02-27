@@ -7,29 +7,29 @@ import org.kohsuke.args4j.Option;
 
 public class CommandLineArguments {
 
-    @Option(name="-sourceSqlDatabase",usage="SqlServer Database name")
-    private String sourceSqlDatabase = null;
+    @Option(name="-sourceName",usage="Source Name. i.e either one of the Sql type databases or Hive")
+    private static String sourceName;
 
-    @Option(name="-destinationSqlDatabase",usage="SqlServer Database name")
-    private String destinationSqlDatabase = null;
+    @Option(name="-destinationName",usage="Destination Name. i.e either one of the Sql type databases or Hive")
+    private static String destinationName;
 
-    @Option(name="-sourceSqlTable",usage="SqlServer Table name")
-    private String sourceSqlTable = null;
+    @Option(name="-sourceType",usage="Source Type. i.e Sql or Hive")
+    private static String sourceType;
 
-    @Option(name="-destinationSqlTable",usage="SqlServer Table name")
-    private String destinationSqlTable = null;
+    @Option(name="-destinationType",usage="Destination Type. i.e Sql or Hive")
+    private static String destinationType;
 
-    @Option(name="-sourceHiveDatabase",usage="Hive Database name")
-    private String sourceHiveDatabase = null;
+    @Option(name="-sourceDatabase",usage="SqlServer Database name")
+    private String sourceDatabase;
 
-    @Option(name="-destinationHiveDatabase",usage="Hive Database name")
-    private String destinationHiveDatabase = null;
+    @Option(name="-destinationDatabase",usage="SqlServer Database name")
+    private String destinationDatabase;
 
-    @Option(name="-sourceHiveTable",usage="Hive Table name")
-    private String sourceHiveTable = null;
+    @Option(name="-sourceTable",usage="SqlServer Table name")
+    private String sourceTable;
 
-    @Option(name="-destinationHiveTable",usage="Hive Table name")
-    private String destinationHiveTable = null;
+    @Option(name="-destinationTable",usage="SqlServer Table name")
+    private String destinationTable;
 
     @Option(name="-where",usage="where clause to query partitioned hive tables")
     private String whereClause = null;
@@ -48,68 +48,69 @@ public class CommandLineArguments {
         }
     }
 
-    public String getsourceSqlDatabase() {
-        return sourceSqlDatabase;
+    public static String getsourceName() {
+        return sourceName;
     }
 
-    public void setsourceSqlDatabase(String sourceSqlDatabase) {
-        this.sourceSqlDatabase = sourceSqlDatabase;
+    public void setsourceName(String sourceName) {
+        CommandLineArguments.sourceName = sourceName;
     }
 
-    public String getdestinationSqlDatabase() {
-        return destinationSqlDatabase;
+    public static String getdestinationName() {
+        return destinationName;
     }
 
-    public void setdestinationSqlDatabase(String destinationSqlDatabase) {
-        this.destinationSqlDatabase = destinationSqlDatabase;
+    public void setdestinationName(String destinationName) {
+        CommandLineArguments.destinationName = destinationName;
     }
 
-    public String getsourceSqlTable() {
-        return sourceSqlTable;
+    public static String getsourceType() {
+        return sourceType;
     }
 
-    public void setsourceSqlTable(String sourceSqlTable) {
-        this.sourceSqlTable = sourceSqlTable;
+    public void setsourceType(String sourceType) {
+        CommandLineArguments.sourceType = sourceType;
     }
 
-    public String getdestinationSqlTable() {
-        return destinationSqlTable;
+    public static String getdestinationType() {
+        return destinationType;
     }
 
-    public void setdestinationSqlTable(String destinationSqlTable) {
-        this.destinationSqlTable = destinationSqlTable;
+    public void setdestinationType(String destinationType) {
+        CommandLineArguments.destinationType = destinationType;
     }
 
-    public String getsourceHiveDatabase() {
-        return sourceHiveDatabase;
+    public String getsourceDatabase() {
+        return sourceDatabase;
     }
 
-    public void setsourceHiveDatabase(String sourceHiveDatabase) {
-        this.sourceHiveDatabase = sourceHiveDatabase;
+    public void setsourceDatabase(String sourceDatabase) {
+        this.sourceDatabase = sourceDatabase;
     }
 
-    public String getdestinationHiveDatabase() {
-        return destinationHiveDatabase;
+    public String getdestinationDatabase() {
+        return destinationDatabase;
+
     }
 
-    public void setdestinationHiveDatabase(String destinationHiveDatabase) {
-        this.destinationHiveDatabase = destinationHiveDatabase;
+    public void setdestinationDatabase(String destinationDatabase) {
+        this.destinationDatabase = destinationDatabase;
     }
 
-    public String getsourceHiveTable() {
-        return sourceHiveTable;
+    public String getsourceTable() {
+        return sourceTable;
     }
 
-    public void setsourceHiveTable(String sourceHiveTable) {
-        this.sourceHiveTable = sourceHiveTable;
+    public void setsourceTable(String sourceTable) {
+        this.sourceTable = sourceTable;
     }
 
-    public String getdestinationHiveTable() {
-        return destinationHiveTable;
+    public String getdestinationTable() {
+        return destinationTable;
     }
 
-    public void setdestinationHiveTable(String destinationHiveTable) {
-        this.destinationHiveTable = destinationHiveTable;
+    public void setdestinationTable(String destinationTable) {
+        this.destinationTable = destinationTable;
     }
 
     public String getwhereClause() {

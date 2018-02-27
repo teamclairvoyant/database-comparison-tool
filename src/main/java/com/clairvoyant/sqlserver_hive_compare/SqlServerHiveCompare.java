@@ -21,31 +21,32 @@ public class SqlServerHiveCompare {
 
     public static void main(String[] args) throws Exception {
 
-        String sourceSqlServerUrl;
-        String sourceSqlServerUsername;
-        String sourceSqlServerPassword;
-        String sourceSqlServerDriver;
-        String sourceSqlServerPort;
+        String sourceSqlUrl;
+        String sourceSqlUsername;
+        String sourceSqlPassword;
+        String sourceSqlDriver = null;
+        String sourceSqlPort = null;
 
-        String destinationSqlServerUrl;
-        String destinationSqlServerUsername;
-        String destinationSqlServerPassword;
-        String destinationSqlServerDriver;
-        String destinationSqlServerPort;
+        String destinationSqlUrl;
+        String destinationSqlUsername;
+        String destinationSqlPassword;
+        String destinationSqlDriver = null;
+        String destinationSqlPort = null;
 
         String htmlStorageLocation;
 
         CommandLineArguments arguments = new CommandLineArguments(args);
 
-        String sourceSqlDatabase = arguments.getsourceSqlDatabase();
-        String sourceSqlTable = arguments.getsourceSqlTable();
-        String sourceHiveDatabase = arguments.getsourceHiveDatabase();
-        String sourceHiveTableName = arguments.getsourceHiveTable();
+        String sourceName = CommandLineArguments.getsourceName();
+        String destinationName = CommandLineArguments.getdestinationName();
 
-        String destinationSqlDatabase = arguments.getdestinationSqlDatabase();
-        String destinationSqlTable = arguments.getdestinationSqlTable();
-        String destinationHiveDatabase = arguments.getdestinationHiveDatabase();
-        String destinationHiveTableName = arguments.getdestinationHiveTable();
+        String sourceType = CommandLineArguments.getsourceType();
+        String destinationType = CommandLineArguments.getdestinationType();
+
+        String sourceDatabase = arguments.getsourceDatabase();
+        String sourceTable = arguments.getsourceTable();
+        String destinationDatabase = arguments.getdestinationDatabase();
+        String destinationTable = arguments.getdestinationTable();
 
         String whereClause = arguments.getwhereClause();
         String excludeColumnsString = arguments.getexcludeColumns();
@@ -77,167 +78,200 @@ public class SqlServerHiveCompare {
         sparkConf.setAppName("SqlServerHiveCompare");
 
         //load SqlServer properties
-        sourceSqlServerUrl = (String) context.getBean("sourceSqlServerUrl");
-        sourceSqlServerUsername = (String) context.getBean("sourceSqlServerUsername");
-        sourceSqlServerPassword = (String) context.getBean("sourceSqlServerPassword");
-        sourceSqlServerDriver = (String) context.getBean("sourceSqlServerDriver");
-        sourceSqlServerPort = (String) context.getBean("sourceSqlServerPort");
 
-        destinationSqlServerUrl = (String) context.getBean("destinationSqlServerUrl");
-        destinationSqlServerUsername = (String) context.getBean("destinationSqlServerUsername");
-        destinationSqlServerPassword = (String) context.getBean("destinationSqlServerPassword");
-        destinationSqlServerDriver = (String) context.getBean("destinationSqlServerDriver");
-        destinationSqlServerPort = (String) context.getBean("destinationSqlServerPort");
+        ArrayList serverNames;
+        serverNames = (ArrayList) context.getBean("serverNames");
+
+
+        sourceSqlUrl = (String) context.getBean("sourceSqlServerUrl");
+        sourceSqlUsername = (String) context.getBean("sourceSqlServerUsername");
+        sourceSqlPassword = (String) context.getBean("sourceSqlServerPassword");
+        if (Objects.equals(sourceType, "mssql")){
+            sourceSqlDriver = (String) context.getBean("sqlServerDriver");
+            sourceSqlPort = (String) context.getBean("sqlServerPort");
+        }else if(Objects.equals(sourceType, "mysql")) {
+            sourceSqlDriver = (String) context.getBean("mySqlDriver");
+            sourceSqlPort = (String) context.getBean("mysqlPort");
+        }else if(Objects.equals(sourceType, "postgresql")) {
+            sourceSqlDriver = (String) context.getBean("postgresqlDriver");
+            sourceSqlPort = (String) context.getBean("postgresqlPort");
+        }
+
+        destinationSqlUrl = (String) context.getBean("destinationSqlServerUrl");
+        destinationSqlUsername = (String) context.getBean("destinationSqlServerUsername");
+        destinationSqlPassword = (String) context.getBean("destinationSqlServerPassword");
+        if (Objects.equals(destinationType, "mssql")){
+            destinationSqlDriver = (String) context.getBean("sqlServerDriver");
+            destinationSqlPort = (String) context.getBean("sqlServerPort");
+        }else if(Objects.equals(destinationType, "mysql")) {
+            destinationSqlDriver = (String) context.getBean("mySqlDriver");
+            destinationSqlPort = (String) context.getBean("mysqlPort");
+        }else if(Objects.equals(destinationType, "postgresql")) {
+            destinationSqlDriver = (String) context.getBean("postgresqlDriver");
+            destinationSqlPort = (String) context.getBean("postgresqlPort");
+        }
 
         htmlStorageLocation = (String) context.getBean("htmlStorageLocation");
 
-        String sourceDatabase = null;
-        String sourceTableName = null;
-        String destinationDatabase = null;
-        String destinationTableName = null;
-
-        DataFrame sourceTable = null;
-        DataFrame destinationTable = null;
+        DataFrame sourceTableDF;
+        DataFrame destinationTableDF;
         DataFrame sqlServerTableSchema;
-        long sourceTableCount = 0;
-        long destinationTableCount = 0;
+        long sourceTableCount;
+        long destinationTableCount;
 
         String[] destinationTableFields;
 
         // Getting Source Table into a DataFrame
-        if (null != sourceSqlDatabase && null != sourceSqlTable){
+        if (!Objects.equals(sourceName, "Hive")){
 
-            sourceDatabase = sourceSqlDatabase;
-            sourceTableName = sourceSqlTable;
-
-            // Get the schema from the table in sql server
+            // Get the schema from the table in Sql Source
             Map<String, String> sqlSchemaOptions = new HashMap<>();
-            sqlSchemaOptions.put("url", sourceSqlServerUrl + ":" + sourceSqlServerPort + ";user=" + sourceSqlServerUsername + ";password=" + sourceSqlServerPassword + ";databaseName=" + sourceSqlDatabase);
-            sqlSchemaOptions.put("dbtable", "(select DATA_TYPE,COLUMN_NAME from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='" + sourceSqlTable + "') select_telarix");
-            sqlSchemaOptions.put("driver", sourceSqlServerDriver);
+            if(Objects.equals(sourceType, "mysql")){
+                sqlSchemaOptions.put("url",sourceSqlUrl + ":" + sourceSqlPort +"/"+sourceDatabase);
+                sqlSchemaOptions.put("user",sourceSqlUsername);
+                sqlSchemaOptions.put("password",sourceSqlPassword);
+            }else if(Objects.equals(sourceType, "postgresql")){
+                sqlSchemaOptions.put("url", sourceSqlUrl+":"+sourceSqlPort+"/"+sourceDatabase+"?user="+sourceSqlUsername+"&password="+sourceSqlPassword);
+            }else if(Objects.equals(sourceType, "mssql")){
+                sqlSchemaOptions.put("url", sourceSqlUrl + ":" + sourceSqlPort + ";user=" + sourceSqlUsername + ";password=" + sourceSqlPassword + ";databaseName=" + sourceDatabase);
+            }
+            sqlSchemaOptions.put("dbtable", "(select DATA_TYPE,COLUMN_NAME from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='" + sourceTable + "') select_telarix");
+            sqlSchemaOptions.put("driver", sourceSqlDriver);
 
             sqlServerTableSchema = hiveContext.read().format("jdbc").options(sqlSchemaOptions).load();
-            String sqlQuery = "(SELECT * FROM "+sourceSqlTable;
+            String sqlQuery = "(SELECT * FROM "+sourceTable;
             if (null != whereClause) {
                 sqlQuery += " where (" + whereClause + ")";
             }
 
-            // Get the data from table in Sql Server
+            // Get the data from table in Sql Source
             Map<String, String> sqlQueryOptions = new HashMap<>();
-            sqlQueryOptions.put("url", sourceSqlServerUrl + ":" + sourceSqlServerPort + ";user=" + sourceSqlServerUsername + ";password=" + sourceSqlServerPassword + ";databaseName=" + sourceSqlDatabase);
+            if(Objects.equals(sourceType, "mysql")){
+                sqlQueryOptions.put("url",sourceSqlUrl + ":" + sourceSqlPort +"/"+sourceDatabase);
+                sqlQueryOptions.put("user",sourceSqlUsername);
+                sqlQueryOptions.put("password",sourceSqlPassword);
+            }else if(Objects.equals(sourceType, "postgresql")){
+                sqlQueryOptions.put("url", sourceSqlUrl+":"+sourceSqlPort+"/"+sourceDatabase+"?user="+sourceSqlUsername+"&password="+sourceSqlPassword);
+            }
+            else if(Objects.equals(sourceType, "mssql")){
+                sqlQueryOptions.put("url", sourceSqlUrl + ":" + sourceSqlPort + ";user=" + sourceSqlUsername + ";password=" + sourceSqlPassword + ";databaseName=" + sourceDatabase);
+            }
             sqlQueryOptions.put("dbtable", sqlQuery + ") select_telarix");
-            sqlQueryOptions.put("driver", sourceSqlServerDriver);
+            sqlQueryOptions.put("driver", sourceSqlDriver);
 
-            sourceTable = hiveContext.read().format("jdbc").options(sqlQueryOptions).load();
-            sourceTableCount = sourceTable.count();
+            sourceTableDF = hiveContext.read().format("jdbc").options(sqlQueryOptions).load();
+            sourceTableCount = sourceTableDF.count();
             if(sourceTableCount == 0){
                 System.out.println("Source Table is Empty");
                 System.exit(0);
             }
 
-            // Casting the columns in dataframe where sqlserver table is stored
-            sourceTable = castColumns(sqlServerTableSchema, sourceTable);
+            // Casting the columns in dataframe where Sql table is stored
+            sourceTableDF = castColumns(sqlServerTableSchema, sourceTableDF);
 
-        }else if(null != sourceHiveDatabase && null != sourceHiveTableName){
-
-            sourceDatabase = sourceHiveDatabase;
-            sourceTableName = sourceHiveTableName;
+        }else{
 
             // Get the data from Hive Table
-            String hiveQuery = "SELECT * FROM " + sourceHiveDatabase + "." + sourceHiveTableName;
+            String hiveQuery = "SELECT * FROM " + sourceDatabase + "." + sourceTable;
             if (null != whereClause) {
                 hiveQuery += " where (" + whereClause + ")";
             }
-            sourceTable = hiveContext.sql(hiveQuery);
-            destinationTableFields = sourceTable.schema().fieldNames();
+            sourceTableDF = hiveContext.sql(hiveQuery);
+            destinationTableFields = sourceTableDF.schema().fieldNames();
             for(String column : destinationTableFields){
-                sourceTable = sourceTable.withColumnRenamed(column,column.toLowerCase());
+                sourceTableDF = sourceTableDF.withColumnRenamed(column,column.toLowerCase());
             }
-            sourceTableCount = sourceTable.count();
+            sourceTableCount = sourceTableDF.count();
             if(sourceTableCount == 0){
                 System.out.println("Source Table is Empty");
                 System.exit(0);
             }
-        }else{
-            System.out.println("  Provide Source Database and Table names");
-            System.exit(1);
         }
 
         // Getting Destination Table into a DataFrame
-        if (null != destinationSqlDatabase && null != destinationSqlTable){
-
-            destinationDatabase = destinationSqlDatabase;
-            destinationTableName = destinationSqlTable;
+        if (!Objects.equals(destinationName, "Hive")){
 
             // Get the schema from the table in sql server
             Map<String, String> sqlSchemaOptions = new HashMap<>();
-            sqlSchemaOptions.put("url", destinationSqlServerUrl + ":" + destinationSqlServerPort + ";user=" + destinationSqlServerUsername + ";password=" + destinationSqlServerPassword + ";databaseName=" + destinationSqlDatabase);
-            sqlSchemaOptions.put("dbtable", "(select DATA_TYPE,COLUMN_NAME from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='" + destinationSqlTable + "') select_telarix");
-            sqlSchemaOptions.put("driver", destinationSqlServerDriver);
+            if(Objects.equals(destinationType, "mysql")){
+                sqlSchemaOptions.put("url",destinationSqlUrl + ":" + destinationSqlPort +"/"+destinationDatabase);
+                sqlSchemaOptions.put("user",destinationSqlUsername);
+                sqlSchemaOptions.put("password",destinationSqlPassword);
+            }else if(Objects.equals(destinationType, "postgresql")){
+                sqlSchemaOptions.put("url", destinationSqlUrl+":"+destinationSqlPort+"/"+destinationDatabase+"?user="+destinationSqlUsername+"&password="+destinationSqlPassword);
+            }
+            else if(Objects.equals(destinationType, "mssql")){
+                sqlSchemaOptions.put("url", destinationSqlUrl + ":" + destinationSqlPort + ";user=" + destinationSqlUsername + ";password=" + destinationSqlPassword + ";databaseName=" + destinationDatabase);
+            }
+            sqlSchemaOptions.put("dbtable", "(select DATA_TYPE,COLUMN_NAME from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='" + destinationTable + "') select_telarix");
+            sqlSchemaOptions.put("driver", destinationSqlDriver);
 
             sqlServerTableSchema = hiveContext.read().format("jdbc").options(sqlSchemaOptions).load();
 
-            String sqlQuery = "(SELECT * FROM "+destinationSqlTable;
+            String sqlQuery = "(SELECT * FROM "+destinationTable;
             if (null != whereClause) {
                 sqlQuery += " where (" + whereClause + ")";
             }
 
             // Get the data from table in Sql Server
             Map<String, String> sqlQueryOptions = new HashMap<>();
-            sqlQueryOptions.put("url", destinationSqlServerUrl + ":" + destinationSqlServerPort + ";user=" + destinationSqlServerUsername + ";password=" + destinationSqlServerPassword + ";databaseName=" + destinationSqlDatabase);
+            if(Objects.equals(destinationType, "mysql")){
+                sqlQueryOptions.put("url",destinationSqlUrl + ":" + destinationSqlPort +"/"+destinationDatabase);
+                sqlQueryOptions.put("user",destinationSqlUsername);
+                sqlQueryOptions.put("password",destinationSqlPassword);
+            }else if(Objects.equals(destinationType, "postgresql")){
+                sqlQueryOptions.put("url", destinationSqlUrl+":"+destinationSqlPort+"/"+destinationDatabase+"?user="+destinationSqlUsername+"&password="+destinationSqlPassword);
+            }
+            else if(Objects.equals(destinationType, "mssql")){
+                sqlQueryOptions.put("url", destinationSqlUrl + ":" + destinationSqlPort + ";user=" + destinationSqlUsername + ";password=" + destinationSqlPassword + ";databaseName=" + destinationDatabase);
+            }
             sqlQueryOptions.put("dbtable", sqlQuery + ") select_telarix");
-            sqlQueryOptions.put("driver", destinationSqlServerDriver);
+            sqlQueryOptions.put("driver", destinationSqlDriver);
 
-            destinationTable = hiveContext.read().format("jdbc").options(sqlQueryOptions).load();
-            destinationTableCount = destinationTable.count();
+            destinationTableDF = hiveContext.read().format("jdbc").options(sqlQueryOptions).load();
+            destinationTableCount = destinationTableDF.count();
             if(destinationTableCount == 0){
                 System.out.println("Destination Table is Empty");
                 System.exit(0);
             }
 
             // Casting the columns in dataframe where sqlserver table is stored
-            destinationTable = castColumns(sqlServerTableSchema, destinationTable);
+            destinationTableDF = castColumns(sqlServerTableSchema, destinationTableDF);
 
-        }else if(null != destinationHiveDatabase && null != destinationHiveTableName){
-
-            destinationDatabase = destinationHiveDatabase;
-            destinationTableName = destinationHiveTableName;
+        }else {
 
             // Get the data from Hive Table
-            String hiveQuery = "SELECT * FROM " + destinationHiveDatabase + "." + destinationHiveTableName;
+            String hiveQuery = "SELECT * FROM " + destinationDatabase + "." + destinationTable;
             if (null != whereClause) {
                 hiveQuery += " where (" + whereClause + ")";
             }
-            destinationTable = hiveContext.sql(hiveQuery);
-            destinationTableFields = destinationTable.schema().fieldNames();
+            destinationTableDF = hiveContext.sql(hiveQuery);
+            destinationTableFields = destinationTableDF.schema().fieldNames();
             for(String column : destinationTableFields){
-                destinationTable = destinationTable.withColumnRenamed(column,column.toLowerCase());
+                destinationTableDF = destinationTableDF.withColumnRenamed(column,column.toLowerCase());
             }
-            destinationTableCount = destinationTable.count();
+            destinationTableCount = destinationTableDF.count();
             if(destinationTableCount == 0){
                 System.out.println("Destination Table is Empty");
                 System.exit(0);
             }
 
-        }else{
-            System.out.println("Provide Destination Database and Table names");
-            System.exit(1);
         }
 
         // Excluding Columns as requested by the User
         if (!excludeColumns.isEmpty()) {
             for (String column : excludeColumns) {
-                sourceTable = sourceTable.drop(column);
-                destinationTable = destinationTable.drop(column.toLowerCase());
+                sourceTableDF = sourceTableDF.drop(column);
+                destinationTableDF = destinationTableDF.drop(column.toLowerCase());
             }
         }
-        sourceTable.registerTempTable("sql_table");
-        destinationTable.registerTempTable("hive_table");
+        sourceTableDF.registerTempTable("sql_table");
+        destinationTableDF.registerTempTable("hive_table");
 
         // Finding the Common Columns in Both SqlServer and Hive
-        String[] sourceTableFields = sourceTable.schema().fieldNames();
+        String[] sourceTableFields = sourceTableDF.schema().fieldNames();
         ArrayList<String> sourceTableFieldsMismatchedList = new ArrayList<>(Arrays.asList(sourceTableFields));
-        destinationTableFields = destinationTable.schema().fieldNames();
+        destinationTableFields = destinationTableDF.schema().fieldNames();
         ArrayList<String> destinationTableFieldsMismatchedList = new ArrayList<>(Arrays.asList(destinationTableFields));
 
         ArrayList<String> commonColumnsSource = new ArrayList<>();
@@ -275,18 +309,18 @@ public class SqlServerHiveCompare {
         matchedColumnsDestination.setLength(matchedColumnsDestination.length() - 1);
 
         // Sql Table with Matched Columns
-        sourceTable = hiveContext.sql("select " + matchedColumnsSource.toString() + " from sql_table");
-        sourceTable.registerTempTable("sql_table");
+        sourceTableDF = hiveContext.sql("select " + matchedColumnsSource.toString() + " from sql_table");
+        sourceTableDF.registerTempTable("sql_table");
 
         // Hive Table with Matched Columns
-        destinationTable = hiveContext.sql("SELECT " + matchedColumnsDestination.toString() + " FROM hive_table");
-        destinationTable.registerTempTable("hive_table");
+        destinationTableDF = hiveContext.sql("SELECT " + matchedColumnsDestination.toString() + " FROM hive_table");
+        destinationTableDF.registerTempTable("hive_table");
 
         // Getting Column names from both Source and Destination To Display them in the Html Page.
-        String[] sqlColumns = sourceTable.columns();
+        String[] sqlColumns = sourceTableDF.columns();
         StringBuilder columnsForFinalTableDisplay = new StringBuilder();
         for (String s : sqlColumns) {
-            destinationTable = destinationTable.withColumnRenamed(s.toLowerCase(), s + "_hive");
+            destinationTableDF = destinationTableDF.withColumnRenamed(s.toLowerCase(), s + "_hive");
             String destinationColName = s + "_hive";
             columnsForFinalTableDisplay.append(s);
             columnsForFinalTableDisplay.append(",");
@@ -300,8 +334,8 @@ public class SqlServerHiveCompare {
         try {
 
             // Columns in Sql but not in hive
-            DataFrame dataInSourceButNotDestination = sourceTable.except(destinationTable);
-            DataFrame dataInDestinationButNotSource = destinationTable.except(sourceTable);
+            DataFrame dataInSourceButNotDestination = sourceTableDF.except(destinationTableDF);
+            DataFrame dataInDestinationButNotSource = destinationTableDF.except(sourceTableDF);
             if (dataInSourceButNotDestination.count() == 0 && dataInDestinationButNotSource.count() == 0) {
                 System.out.println("==============================================================");
                 System.out.println("Tables are equal");
@@ -309,8 +343,8 @@ public class SqlServerHiveCompare {
             } else {
 
                 // Getting Cartesian Product
-                sourceTable = sourceTable.withColumn("index", functions.monotonically_increasing_id());
-                DataFrame cartesianProduct = sourceTable.join(destinationTable);
+                sourceTableDF = sourceTableDF.withColumn("index", functions.monotonically_increasing_id());
+                DataFrame cartesianProduct = sourceTableDF.join(destinationTableDF);
                 StringBuilder concatenatedColumnNames = new StringBuilder();
                 List<String> fullColumnsUnMatched = new ArrayList<>();
                 double columnSum;
@@ -355,7 +389,7 @@ public class SqlServerHiveCompare {
 
                 htmlStringBuilder.append("<tr><th></th><th>SQL Server</th><th>Hive</th></tr>");
                 htmlStringBuilder.append("<tr><td>DataBase name</td><td>").append(sourceDatabase).append("</td><td>").append(destinationDatabase).append("</td>");
-                htmlStringBuilder.append("<tr><td>Table name</td><td>").append(sourceTableName).append("</td><td>").append(destinationTableName).append("</td>");
+                htmlStringBuilder.append("<tr><td>Table name</td><td>").append(sourceTable).append("</td><td>").append(destinationTable).append("</td>");
                 htmlStringBuilder.append("<tr><td>Row Count</td><td>").append(sourceTableCount).append("</td><td>").append(destinationTableCount).append("</td>");
                 htmlStringBuilder.append("<tr><td>Mis-matched Schema</td><td>").append(sourceTableFieldsMismatchedList).append("</td><td>").append(destinationTableFieldsMismatchedList).append("</td>");
                 htmlStringBuilder.append("</tr>");
@@ -408,12 +442,12 @@ public class SqlServerHiveCompare {
 
                 htmlStringBuilder.append("</table></body></html>");
 
-                BufferedWriter writer = new BufferedWriter(new FileWriter(htmlStorageLocation + sourceTableName + timestamp + ".html"));
+                BufferedWriter writer = new BufferedWriter(new FileWriter(htmlStorageLocation + sourceTable + timestamp + ".html"));
                 writer.write(htmlStringBuilder.toString());
                 writer.close();
 
                 System.out.println("==============================================================");
-                System.out.println("use http://localhost:49090/" + sourceTableName + timestamp + ".html  link to view the Differences");
+                System.out.println("use http://localhost:49090/" + sourceTable + timestamp + ".html  link to view the Differences");
                 System.out.println("==============================================================");
 
             }

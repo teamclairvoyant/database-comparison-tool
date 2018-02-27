@@ -13,6 +13,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 @Configuration
@@ -20,37 +21,15 @@ import java.util.logging.Logger;
 @PropertySource(value = { "classpath:application.properties" })
 public class AppConfig {
 
+    private String sourceName = CommandLineArguments.getsourceName();
+    private String destinationName = CommandLineArguments.getdestinationName();
+    private String sourceType = CommandLineArguments.getsourceType();
+    private String destinationType = CommandLineArguments.getdestinationType();
+
     private static final Logger logger = Logger.getLogger(AppConfig.class.getName());
 
-    @Value("${sourceSqlServerUrl}")
-    private String sourceSqlServerUrl;
-
-    @Value("${sourceSqlServerUsername}")
-    private String sourceSqlServerUsername;
-
-    @Value("${sourceSqlServerPassword}")
-    private String sourceSqlServerPassword;
-
-    @Value("${sourceSqlServerDriver}")
-    private String sourceSqlServerDriver;
-
-    @Value("${sourceSqlServerPort}")
-    private String sourceSqlServerPort;
-
-    @Value("${destinationSqlServerUrl}")
-    private String destinationSqlServerUrl;
-
-    @Value("${destinationSqlServerUsername}")
-    private String destinationSqlServerUsername;
-
-    @Value("${destinationSqlServerPassword}")
-    private String destinationSqlServerPassword;
-
-    @Value("${destinationSqlServerDriver}")
-    private String destinationSqlServerDriver;
-
-    @Value("${destinationSqlServerPort}")
-    private String destinationSqlServerPort;
+    @Value("#{'${serverNames}'.split(',')}")
+    private List<String> serverNames;
 
     @Value("${htmlStorageLocation}")
     private String htmlStorageLocation;
@@ -60,53 +39,68 @@ public class AppConfig {
 
 
     @Bean
-    public String sourceSqlServerUrl() {
-        return sourceSqlServerUrl;
+    public List serverNames() {
+        return serverNames;
     }
 
     @Bean
-    public String sourceSqlServerPort() {
-        return sourceSqlServerPort;
+    public String sqlServerDriver() {
+        return environment.getProperty("driver.mssql");
+    }
+
+    @Bean
+    public String postgresqlDriver() {
+        return environment.getProperty("driver.postgresql");
+    }
+
+    @Bean
+    public String mySqlDriver() {
+        return environment.getProperty("driver.mysql");
+    }
+
+    @Bean
+    public String postgresqlPort(){
+        return environment.getProperty("port.postgresql");
+    }
+
+    @Bean
+    public String sqlServerPort(){
+        return environment.getProperty("port.mssql");
+    }
+
+    @Bean
+    public String mysqlPort(){
+        return environment.getProperty("port.mysql");
+    }
+
+    @Bean
+    public String sourceSqlServerUrl() {
+        return environment.getProperty("url." + sourceName);
     }
 
     @Bean
     public String sourceSqlServerUsername() {
-        return sourceSqlServerUsername;
+        return environment.getProperty("username." + sourceName);
     }
 
     @Bean
     public String sourceSqlServerPassword() {
-        return sourceSqlServerPassword;
-    }
-
-    @Bean
-    public String sourceSqlServerDriver() {
-        return sourceSqlServerDriver;
+        return environment.getProperty("password." + sourceName);
     }
 
     @Bean
     public String destinationSqlServerUrl() {
-        return destinationSqlServerUrl;
-    }
-
-    @Bean
-    public String destinationSqlServerPort() {
-        return destinationSqlServerPort;
+        return environment.getProperty("url." + destinationName);
     }
 
     @Bean
     public String destinationSqlServerUsername() {
-        return destinationSqlServerUsername;
+        return environment.getProperty("username." + destinationName);
     }
 
     @Bean
     public String destinationSqlServerPassword() {
-        return destinationSqlServerPassword;
-    }
-
-    @Bean
-    public String destinationSqlServerDriver() {
-        return destinationSqlServerDriver;
+        return environment.getProperty("password." + destinationName);
     }
 
     @Bean
@@ -121,8 +115,7 @@ public class AppConfig {
 
     @Bean
     public SparkConf sparkConf() {
-        SparkConf sparkConf = new SparkConf();
-        return sparkConf;
+        return new SparkConf();
     }
 
     @Bean
