@@ -31,7 +31,7 @@
 **Port Forwarding:**
 
 1. Forward 9090 port to get this server run.
-2. For Telarix this should be the way to connect to jumphost with port forwarding 
+2. For Telarix this should be the way to connect to jump host with port forwarding 
         
         ssh -L 40022:10.0.224.64:22 -L 40080:10.0.224.64:80 -L 47180:34.197.46.99:7180 -L 48888:34.197.46.99:8888 -L 48088:34.197.46.99:8088 -L 49888:34.197.46.99:19888 -L 48080:34.197.46.99:8080 -L 45672:34.197.46.99:15672 -L 47187:34.197.46.99:7187 -L 58080:10.0.224.100:8080 -L 50070:34.197.46.99:50070 -L 49090:34.197.46.99:9090 robert.sanders@10.6.5.22
     
@@ -75,4 +75,16 @@ Optional Arguments
 Example:
 
     sh tes.sh -sourceName {SOURCE_NAME} -destinationName {DESTINATION_NAME} -sourceType {SOURCE_TYPE} -destinationType {DESTINATION_TYPE} -sourceDatabase {SOURCE_DATABASE} -sourceTable {SOURCE_TABLE} -destinationDatabase {DESTINATION_DATABASE} -destinationTable {DESTINATION_TABLE} --excludeColumns {columns_to_exclude} --where {where_clause}
+
+Setup Steps:
+    
+    1. This tool can be quickly used by downloading the "database_comparision_tool_build" direcotry from the repo into the desired location.
+    2. Under this direcotry there are two sub-directories. "conf" directory consists of the application.properties file. Fill the application.properties file with your desired database details.
+    3. "lib" directory consists of the latest jar file.
+    4. Once this "database_comparision_tool_build" is downloaded and the application.properties is updated the tool is ready to use.
+
+TODO:
+
+1. Validate using primary key.
+2. Support Hash compare.(Hashing the entire row)    
     
