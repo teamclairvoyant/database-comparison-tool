@@ -79,9 +79,9 @@ Example:
 Setup Steps:
     
     1. This tool can be quickly used by downloading the "database_comparision_tool_build" direcotry from the repo into the desired location.
-    2. Under this direcotry there are two sub-directories. "conf" directory consists of the application.properties file. Fill the application.properties file with your desired database details.
-    3. "lib" directory consists of the latest jar file.
-    4. Once this "database_comparision_tool_build" is downloaded and the application.properties is updated the tool is ready to use.
+    2. Under this direcotry there is a sub-directory called ""conf. "conf" directory consists of the application.properties file. Fill the application.properties file with your desired database details.
+    3. Create "lib" directory as another sub-directory. Build the jar by pulling latest code from the repo. Jar is generated in target directory. Copy the jar file to the "lib" directory.
+    4. Once this "database_comparision_tool_build" is downloaded and the application.properties is updated and the jar file is generated and copied from target directory to "lib" the tool is ready to use.
 
 TODO:
 
